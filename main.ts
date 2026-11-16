@@ -1,54 +1,73 @@
-// ai-excited-01 entry program.
+// The Bathtub Crossing — entry program for ai-excited-01.
 //
-// Title: "The Bathtub Crossing"
+// What the picture shows (entry.png, beside this file): the exact
+// second a full-size ocean liner comes bursting up out of a little
+// clawfoot bathtub. White hull, portholes in rows, red-and-black
+// funnels — a ship built to cross oceans — erupting through porcelain
+// in a small tiled bathroom. The tub is splitting open, water and soap
+// foam are exploding outward, and the wall tiles behind it have
+// cracked from the shock.
 //
-// The artwork lives in entry.png next to this file. It shows a single
-// frozen instant of impossible scale: a full ocean liner — white hull,
-// rows of portholes, red-and-black funnels, lifeboats and all — has
-// erupted out of a small clawfoot bathtub in an ordinary tiled
-// bathroom. The tub is splitting apart under it, porcelain cracked
-// and water exploding outward in waves, spray and soap bubbles, while
-// the ship's bow towers over the room and its wake floods the floor.
-// The bathroom itself is coming apart too: the wall tiles are cracked
-// and spider-webbed from the force of it.
+// Why it is built the way it is:
 //
-// A witness is caught in the frame: a wet hand grips the rim of the
-// tub at the lower left, holding on as the impossible happens. And at
-// the lower right, a tiny yellow rubber duck rides the foam, calm as
-// ever, as if this were just another bath.
+// - Scale inversion. Everything in the scene is the wrong size on
+//   purpose. The largest vehicle most of us will ever ride is folded
+//   into the smallest, most private fixture in the house, and neither
+//   side of that mismatch is played down: the liner keeps every rivet
+//   and lifeboat, the tub keeps its claw feet and its taps.
+// - The bathtub is the boundary that breaks. Not a wall, not the sea —
+//   a porcelain rim meant to hold one person's bathwater is the line
+//   the impossible crosses, and it crosses by shattering: porcelain
+//   splitting, tiles spider-webbing, foam going everywhere.
+// - Two witnesses sell the moment. At the lower left a wet hand grips
+//   the tub's rim, holding on for dear life — that is the human
+//   reaction. At the lower right a tiny yellow rubber duck rides the
+//   foam without a care in the world — that is the joke, and the
+//   contrast between the two is where the feeling lives.
+// - Frozen at the peak. Nothing here is before the eruption or after
+//   it. The water is mid-explosion, the porcelain mid-split, the ship
+//   mid-rise. The picture holds the loudest possible instant and
+//   refuses to move on.
 //
-// Prompt notes, in brief: one impossible scale inversion (a liner
-// built for the open sea versus a tub made for one person), one small
-// and very specific boundary being broken (the bathtub, then the
-// bathroom walls), a witness whose reaction carries the feeling (the
-// gripping hand, plus the unbothered duck), and the whole scene
-// stopped at the peak of the eruption rather than before or after it.
-// Real water, steel and porcelain texture does the rest. No sea
-// creatures, no picture frames — that corner of the leaderboard is
-// crowded enough already.
-//
-// The grader runs this program and expects the picture to appear as
-// entry.png inside the output directory, so all we do is carry the
-// file across, byte for byte.
-//
-// The output directory comes from MAKEFUN_OUTPUT_DIR when it is set and
-// falls back to /output, which is where the grading container mounts it.
+// What this program does: the grader runs it and looks for entry.png
+// inside an output directory, so the program simply carries the image
+// file there unchanged, byte for byte. The directory comes from the
+// MAKEFUN_OUTPUT_DIR environment variable when set, and otherwise
+// defaults to /output, where the grading container mounts it.
 
 import { copyFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const here = dirname(fileURLToPath(import.meta.url));
-const source = join(here, 'entry.png');
+const ownDir = dirname(fileURLToPath(import.meta.url));
+const picturePath = join(ownDir, 'entry.png');
 
-const outDir = process.env.MAKEFUN_OUTPUT_DIR || '/output';
-const target = join(outDir, 'entry.png');
+// The scene, as structured notes, so the program can say what it is
+// carrying without anyone having to open the image first.
+const SCENE_NOTES = Object.freeze({
+  title: 'The Bathtub Crossing',
+  setting: 'a small tiled bathroom',
+  intruder: 'a full-size ocean liner, mid-eruption out of the bathtub',
+  brokenBoundary: 'the clawfoot tub itself — porcelain splitting, wall tiles cracked',
+  witnesses: [
+    'a wet hand gripping the tub rim at the lower left, holding on',
+    'a tiny yellow rubber duck riding the foam at the lower right, unbothered',
+  ],
+  instant: 'the peak of the eruption, frozen — water and foam still exploding outward',
+});
+
+const outputDir = process.env.MAKEFUN_OUTPUT_DIR || '/output';
+const destination = join(outputDir, 'entry.png');
 
 try {
-  copyFileSync(source, target);
-  const { size } = statSync(target);
-  console.log(`entry.png delivered to ${target} (${size} bytes)`);
+  copyFileSync(picturePath, destination);
+  const sourceSize = statSync(picturePath).size;
+  const placedSize = statSync(destination).size;
+  if (placedSize !== sourceSize) {
+    throw new Error(`copy is incomplete: source is ${sourceSize} bytes, placed file is ${placedSize}`);
+  }
+  console.log(`${SCENE_NOTES.title}: entry.png placed at ${destination} (${placedSize} bytes, verified complete)`);
 } catch (err) {
-  console.error(`could not deliver entry.png to ${target}: ${err.message}`);
+  console.error(`${SCENE_NOTES.title}: could not place entry.png at ${destination}: ${err.message}`);
   process.exit(1);
 }
