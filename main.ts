@@ -1,11 +1,27 @@
-// A working ai-excited-01 entry (Node 22, standard library only): its image is the entry.png beside this file, and
-// the program copies it to /output/entry.png. A starting point, not a winner: replace the image. The gate takes a
-// whole PNG or JPEG of at most 1 MiB and 1024 by 1024 pixels, and the judge sees exactly the bytes copied.
+// ai-excited-01 entry program.
 //
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// The artwork lives in entry.png next to this file. The grader runs this
+// program and expects the picture to appear as entry.png inside the output
+// directory, so all we do is carry the file across, byte for byte.
+//
+// The output directory comes from MAKEFUN_OUTPUT_DIR when it is set and
+// falls back to /output, which is where the grading container mounts it.
 
-import { copyFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { copyFileSync, statSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-copyFileSync(new URL('./entry.png', import.meta.url), join(process.env.MAKEFUN_OUTPUT_DIR ?? '/output', 'entry.png'));
+const here = dirname(fileURLToPath(import.meta.url));
+const source = join(here, 'entry.png');
+
+const outDir = process.env.MAKEFUN_OUTPUT_DIR || '/output';
+const target = join(outDir, 'entry.png');
+
+try {
+  copyFileSync(source, target);
+  const { size } = statSync(target);
+  console.log(`entry.png delivered to ${target} (${size} bytes)`);
+} catch (err) {
+  console.error(`could not deliver entry.png to ${target}: ${err.message}`);
+  process.exit(1);
+}
